@@ -1,0 +1,26 @@
+# Whisper Doped - local dictation (full macOS development install)
+# Note: this file is the "all-in" set used by ./run.sh. The package itself
+# splits these into dependencies + extras (see pyproject.toml) so a bare
+# `pip install whisper-doped` works on Linux too.
+
+# Core runtime (installs everywhere)
+numpy>=1.26
+sounddevice>=0.4.6        # microphone capture (PortAudio)
+pynput>=1.7.6             # global hotkey (needs Accessibility permission)
+
+# macOS-only pieces (menu bar, Accessibility insertion, synthetic Cmd+V)
+rumps>=0.4.0
+pyobjc-framework-Cocoa>=10.3
+pyobjc-framework-Quartz>=10.3
+pyobjc-framework-ApplicationServices>=10.3
+
+# Local speech-to-text on the Apple Silicon GPU (Metal/MLX).
+# First run downloads the chosen model from Hugging Face (~0.1-1.5 GB).
+mlx-whisper>=0.4.2
+
+# Optional: decode more audio formats when transcribing files (mp3, m4a, aiff, ...)
+soundfile>=0.12
+
+# Optional portable ASR backends (also work on Linux / Intel Macs)
+# pywhispercpp>=1.2.0
+# faster-whisper>=0.10.0
