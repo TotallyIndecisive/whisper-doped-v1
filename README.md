@@ -61,6 +61,23 @@ telemetry, auto-update, and the LLM "instruct/command" modes.
 
 ## Install & run: quick start (macOS)
 
+### Option 1: Download the app (recommended)
+
+Download the prebuilt `.app` from [GitHub Releases](https://github.com/YOUR_USERNAME/whisper-doped/releases):
+
+1. Download `WhisperDoped-0.2.0-macOS-arm64.dmg`
+2. Open the DMG, drag `WhisperDoped.app` to Applications
+3. Launch from Applications (right-click → Open on first run if needed)
+
+### Option 2: Run with uvx (no install)
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uvx "whisper-doped[macos,mlx]" whisper-doped run
+```
+
+### Option 3: Local dev
+
 ```bash
 cd ~/Development/q4-2026/rea/whisper-doped
 ./run.sh                 # creates .venv, installs deps, starts the menu-bar app
@@ -70,13 +87,13 @@ cd ~/Development/q4-2026/rea/whisper-doped
 - Verify the environment any time with `./run.sh selftest`.
 - Run without a menu bar (keyboard only) with `./run.sh --console`.
 
-### Install anywhere (pip / pipx / uv)
+### Option 4: pipx / uv tool
 
 ```bash
 pipx install "whisper-doped[macos,mlx]"          # macOS with menu bar + MLX
 pipx install "whisper-doped[whispercpp]"         # Linux / Intel: portable CPU
 
-uv tool install "whisper-doped[whispercpp]"      # or via uv
+uv tool install "whisper-doped[macos,mlx]"       # or via uv
 whisper-doped run --console                       # terminal dictation
 whisper-doped run                                 # menu bar (macOS)
 ```
@@ -216,16 +233,15 @@ whisper-doped transcribe x.m4a --backend fasterwhisper --polish
 
 ## Packaging as a real macOS app (optional)
 
-To get its own icon, permissions and "Open at login", bundle the virtualenv with
-[`py2app`](https://py2app.readthedocs.io):
+To build a distributable macOS app with its own icon:
 
 ```bash
-pip install "whisper-doped[macos,mlx]" py2app
-# then build a .app that runs whisper_doped.cli:main (see py2app docs for setup.py)
+cd /Users/smckenzie/Development/q4-2026/rea/whisper-doped
+./build_app.sh   # Creates dist/WhisperDoped.app
+./create_dmg.sh  # Creates dist/WhisperDoped-0.2.0-macOS-arm64.dmg
 ```
 
-For distribution without "unidentified developer" warnings you will also need a
-Developer ID certificate + notarization (Apple Developer account).
+See [BUILD_INSTRUCTIONS.md](BUILD_INSTRUCTIONS.md) for details. For distribution without "unidentified developer" warnings, you'll need a Developer ID certificate + notarization (Apple Developer account).
 
 ---
 
