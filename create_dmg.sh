@@ -88,8 +88,7 @@ Whisper Doped — free, open-source, local dictation for macOS
 
 Whisper Doped is an independent, open-source project. It is NOT affiliated
 with, endorsed by, or connected to Wispr Flow / Wispr AI, Inc. "Wispr Flow"
-and related names are trademarks of their respective owners. This is a
-clean-room, local-first reimplementation. Full project:
+and related names are trademarks of their respective owners. Full project:
 https://github.com/TotallyIndecisive/whisper-doped-v1
 
 Install

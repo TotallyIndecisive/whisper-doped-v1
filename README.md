@@ -6,34 +6,53 @@ app has focus. No account, no sign-in, no cloud. Nothing you say leaves the
 computer.
 
 > **Not affiliated with Wispr Flow.**
-> Whisper Doped is an independent, open-source project, inspired by the *idea* of
-> hold-to-talk dictation. It is **not affiliated with, endorsed by, sponsored
-> by, or connected to Wispr Flow / Wispr AI, Inc.** "Wispr Flow", "Wispr" and any
-> related names or logos belong to their respective owners. This is a
-> clean-room reimplementation: no code, models or data are shared with, or
-> copied from, Wispr Flow. See [License & disclaimer](#license--disclaimer).
+> Whisper Doped is an independent, open-source project. It is **not affiliated
+> with, endorsed by, sponsored by, or connected to Wispr Flow / Wispr AI, Inc.**
+> "Wispr Flow", "Wispr" and any related names or logos belong to their respective
+> owners and are used here only to describe the app it is compared to. See
+> [License & disclaimer](#license--disclaimer).
 
 ---
 
-## What it does (and how it maps to the original)
+## How Whisper Doped compares to Wispr Flow
 
-The original app is an Electron shell + a Swift accessibility helper that streams
-audio to hosted speech models. This project keeps the **architecture** and swaps
-the server-side pieces for local ones:
+From a user's point of view the two apps do the same everyday job: hold a key,
+talk, and your words appear as text in whatever app you're using. The
+differences are in how they run and what they ask of you.
 
-| Wispr Flow (recovered) | Whisper Doped (local) |
-| --- | --- |
-| `renderer/dist/recorderWorklet.js` — AudioWorklet, 640‑frame PCM chunks | `audio.py` — `sounddevice` InputStream, 640‑frame blocks, 16 kHz mono |
-| `TranscribeStream` gRPC (Baseten) → OpenAI fallback | `asr/` — pluggable local Whisper (see below) |
-| `/llm/polish_text`, `/llm/formatting` | `polish.py` — deterministic local cleanup rules |
-| Swift helper: AX direct-set, else clipboard paste | `insert/macos.py` — Accessibility direct-set, else clipboard paste |
-| `org.nspasteboard.ConcealedType`, pasteboard restore | same, via `NSPasteboard` |
-| Global keyboard service (push-to-talk / toggle) | `hotkey.py` — `pynput` global listener |
-| Floating overlay panel | `ui/overlay_macos.py` — native `NSPanel` "pill" |
-| Status-bar menu, `flow.sqlite` (history, dictionary) | `ui/macos.py`, `storage.py` (SQLite) |
+| | Wispr Flow | Whisper Doped |
+| --- | --- | --- |
+| Price | Paid subscription (with a limited free tier) | **Free** |
+| Sign-in | Requires an account | **No sign-in, no account, no subscription** |
+| Where your voice goes | Processed in the cloud | **Stays on your Mac** — transcribed on-device |
+| Offline use | Needs a connection | **Works offline** (after a one-time model download) |
+| Open source | No | **Yes** — MIT licensed; read, fork or change it |
+| Dictation limits | Word/time limits on the free tier | **Unlimited** |
+| Platforms | Mac and Windows | **Any Mac** (Apple Silicon app; Intel via the terminal), plus Linux |
+| Auto-formatting | Cloud AI formatting and voice commands | Local cleanup: fillers, punctuation, corrections, snippets |
 
-**Intentionally omitted**: sign-in, accounts, sync, billing, Notetaker/meetings,
-telemetry, auto-update, and the LLM "instruct/command" modes.
+**What's the same (the everyday experience)**
+
+- Hold a key, speak, release — the text is typed where your cursor is.
+- Use it in any app: email, chat, notes, documents, browsers, code editors.
+- A menu-bar item shows the current state and holds your history and dictionary.
+
+**Why people pick Whisper Doped**
+
+- **Open source.** The whole app is public under the MIT License, so you can see
+  exactly what it does, fork it, or change it. Nothing is hidden.
+- **No sign-in.** There's no account, email, trial, or activation — install it
+  and start dictating.
+- **Private by design.** Your audio is transcribed on your own machine, so your
+  voice never leaves your computer.
+- **Runs on any Mac.** Apple Silicon Macs get the full menu-bar app; Intel Macs
+  (and Linux) can run it from the terminal.
+- **Free and unlimited.** No word counts, no time limits, no upsell.
+
+> Wispr Flow is a separate, commercial product made by another company. The
+> rows above describe its publicly facing, user-level features and may change
+> over time; check its website for the current details. This comparison is about
+> the user experience only.
 
 ---
 
@@ -416,6 +435,5 @@ Whisper Doped is **free and open-source software**, released under the
 It is an independent project and is **not affiliated with, endorsed by,
 sponsored by, or connected to Wispr Flow / Wispr AI, Inc.** "Wispr Flow",
 "Wispr" and any related names or logos are trademarks of their respective owners
-and are referenced only to describe the idea this project was inspired by. No
-code, models or data were copied from Wispr Flow — it is a clean-room,
-local-first reimplementation.
+and are used here only for comparison. Whisper Doped was written independently
+and has no connection to that product.
