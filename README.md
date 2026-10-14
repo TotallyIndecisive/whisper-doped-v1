@@ -63,17 +63,19 @@ telemetry, auto-update, and the LLM "instruct/command" modes.
 
 ### Option 1: Download the app (recommended)
 
-Download the prebuilt `.app` from [GitHub Releases](https://github.com/YOUR_USERNAME/whisper-doped/releases):
+Download the prebuilt `.app` from [GitHub Releases](https://github.com/TotallyIndecisive/whisper-doped-v1/releases):
 
-1. Download `WhisperDoped-0.2.0-macOS-arm64.dmg`
-2. Open the DMG, drag `WhisperDoped.app` to Applications
-3. Launch from Applications (right-click → Open on first run if needed)
+1. Download `WhisperDoped-0.2.0-macOS-arm64.dmg` (Apple Silicon).
+2. Open the DMG and double-click **`Install & Open.command`** — it copies the app
+   to Applications, clears the download-quarantine flag and launches it.
+   *(Or drag `WhisperDoped.app` to Applications, then right-click → Open once.)*
+3. Grant Microphone and Accessibility permissions when asked.
 
 ### Option 2: Run with uvx (no install)
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-uvx "whisper-doped[macos,mlx]" whisper-doped run
+uvx "whisper-doped[macos,mlx] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1" whisper-doped run
 ```
 
 ### Option 3: Local dev
@@ -237,11 +239,16 @@ To build a distributable macOS app with its own icon:
 
 ```bash
 cd /Users/smckenzie/Development/q4-2026/rea/whisper-doped
-./build_app.sh   # Creates dist/WhisperDoped.app
+./build_app.sh   # Creates dist/WhisperDoped.app (~620 MB, MLX bundled)
 ./create_dmg.sh  # Creates dist/WhisperDoped-0.2.0-macOS-arm64.dmg
 ```
 
-See [BUILD_INSTRUCTIONS.md](BUILD_INSTRUCTIONS.md) for details. For distribution without "unidentified developer" warnings, you'll need a Developer ID certificate + notarization (Apple Developer account).
+Requires an Apple Silicon Mac, Xcode Command Line Tools and Python 3.12. The
+app is ad-hoc signed; a downloaded copy needs its quarantine flag cleared once
+(the DMG ships an `Install & Open.command` helper that does this). See
+[BUILD_INSTRUCTIONS.md](BUILD_INSTRUCTIONS.md) for details, and
+[DISTRIBUTION_PLAN.md](DISTRIBUTION_PLAN.md) for the MLX/py2app gotchas handled
+by the build script.
 
 ---
 

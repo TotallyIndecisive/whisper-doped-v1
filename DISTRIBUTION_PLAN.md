@@ -1,142 +1,96 @@
 # Whisper Doped Distribution Plan
 
-The goal is to make it easy for users to download from GitHub, get a desktop icon saved as an app in Applications, and run it with full functionality (menu bar/popup style via rumps).
+Goal: let a user download Whisper Doped from GitHub, end up with a real
+`WhisperDoped.app` icon in `/Applications`, and use it exactly like the source
+build — a menu-bar agent (rumps) with global hotkeys and Accessibility text
+insertion, no full GUI.
 
-## Recommended Approach (Most Optimal)
+## Chosen approach
 
-For macOS desktop distribution, the best user experience is:
+**Primary — GitHub Releases: a `.dmg` containing `WhisperDoped.app`.**
+Drag to Applications, launch once. This gives the app a stable bundle identity
+so macOS attaches the Microphone / Accessibility / Input-Monitoring permissions
+to *WhisperDoped* rather than to a Python interpreter.
 
-1. **Primary:** GitHub Releases with a signed/notarized `.app` inside a `.dmg` installer
-- Users download DMG, drag WhisperDoped.app to Applications, launch once
-- Gets its own dock/menu bar presence, works with macOS permissions properly
-- Looks and feels like a real desktop app
+**Secondary — `uvx` one-liner** for people who prefer the terminal and want
+auto-updates:
 
-2. **Secondary:** uvx one-liner (no local install needed)
-- `uvx "whisper-doped[macos,mlx]" whisper-doped run`
-- Great for developers/advanced users
-- Also easy to self-update
-
-## Implementation Plan
-
-### 1. App Icon
-- [x] Created basic icon at `assets/icon.png` (1024x1024)
-- [x] Created `.icns` at `assets/WhisperDoped.icns` using iconutil
-
-### 2. macOS .app Bundle (py2app)
-We’ll use py2app because:
-- Works well with rumps/pyobjc (native macOS frameworks)
-- Simple for menu-bar apps
-- Creates self-contained .app
-
-Create `setup.py` for py2app configuration:
-```python
-# setup.py
-from setuptools import setup
-import sys
-
-DATA_FILES = []
-OPTIONS = {
-    'argv_emulation': False,  # menu bar apps don't need argv emulation
-    'iconfile': 'assets/WhisperDoped.icns',
-    'plist': {
-        'CFBundleName': 'WhisperDoped',
-        'CFBundleDisplayName': 'Whisper Doped',
-        'CFBundleIdentifier': 'com.whisperdoped.app',
-        'CFBundleVersion': '0.2.0',
-        'CFBundleShortVersionString': '0.2.0',
-        'LSUIElement': True,  # Runs as menu bar/agent (no dock icon)
-        'NSHighResolutionCapable': True,
-        'NSHumanReadableCopyright': 'MIT License',
-    },
-    'includes': [
-        'whisper_doped',
-        'rumps',
-        'numpy',
-        'sounddevice',
-        'pynput',
-    ],
-}
-
-setup(
-    app=['packaging/scripts/whisper_doped_app.py'],
-    data_files=DATA_FILES,
-    options={'py2app': OPTIONS},
-    setup_requires=['py2app'],
-)
-```
-
-Create entry point `packaging/scripts/whisper_doped_app.py`:
-```python
-#!/usr/bin/env python3
-from whisper_doped.cli import main
-
-if __name__ == '__main__':
-    main()
-```
-
-### 3. Build Scripts
-
-**build_app.sh**:
-- Install py2app and dependencies
-- Build .app with py2app
-- Copy to `dist/WhisperDoped.app`
-- Optionally strip/universalize for Intel+ARM (lipo) if needed
-
-**create_dmg.sh**:
-- Create DMG with nice layout (Applications symlink, background if desired)
-- Uses `hdiutil create` 
-- Output: `dist/WhisperDoped-0.2.0-macOS-arm64.dmg` (or universal)
-
-### 4. DMG Creation Details
-Simple, clean approach:
 ```bash
-hdiutil create -volname "Whisper Doped" -srcfolder dist/WhisperDoped.app -ov -format UDZO dist/WhisperDoped-0.2.0.dmg
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uvx "whisper-doped[macos,mlx] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1" whisper-doped run
 ```
 
-Better layout (optional): create a staging dir with .app and Applications link, set window view - but simple works fine.
+## How the bundle is built
 
-### 5. README Updates
-Add Installation section:
-- **Download app (recommended)**: GitHub Releases → Download .dmg → drag to Applications
-- **uvx (instant, no install)**: `curl -LsSf https://astral.sh/uv/install.sh | sh && uvx "whisper-doped[macos,mlx]" whisper-doped run`
-- **pipx/uv tool**: existing instructions
-- **Homebrew**: existing formula (CLI only)
+`setup.py` (py2app) + `build_app.sh`:
 
-### 6. GitHub Releases Workflow (Documentation)
-When ready to publish:
-1. Tag: `git tag v0.2.0`
-2. Push: `git push origin v0.2.0`
-3. Build DMG locally (or CI)
-4. Create GitHub Release, attach DMG and maybe .app.zip
-5. Update Homebrew formula with sdist URL/sha if publishing to PyPI
+1. Create/repair `.venv`, `pip install -e ".[macos,mlx]"`.
+2. Run `py2app` (from the venv interpreter so MLX and PortAudio are present).
+3. Copy the full **MLX** runtime into the bundle (see gotchas below).
+4. Ad-hoc code-sign the bundle.
+5. `create_dmg.sh` packages it with an Applications shortcut, a README and an
+   `Install & Open.command` helper.
 
-## Considerations
+References to `LSUIElement: True` in the Info.plist keep it a menu-bar agent
+(no Dock icon), which matches the current behaviour.
 
-### Permissions
-- LSUIElement means no dock icon (menu bar app) - this matches rumps behavior. Correct choice.
-- Users still need to grant Microphone, Accessibility, Input Monitoring in System Settings. This is normal macOS security.
-- If we want "Open at Login", we can add that via rumps (Start at Login menu item) - app already has menu.
+### Non-obvious gotchas that are handled
 
-### Code Signing/Notarization
-For distribution outside own machine, unsigned apps show "unidentified developer". Options:
-- Ad-hoc sign: `codesign --force --deep --sign - dist/WhisperDoped.app` (helps on same arch)
-- Developer ID + notarization: requires Apple Developer ($99/year). For GitHub public releases, many projects distribute unsigned and users right-click Open - acceptable.
+* **pyproject metadata vs py2app** — py2app 0.28 aborts with
+  *"install_requires is no longer supported"* when setuptools reads
+  `dependencies` from `pyproject.toml`. `build_app.sh` hides `pyproject.toml`
+  for the duration of the build.
+* **`pkg_resources` / `imp`** — py2app needs the legacy `pkg_resources`
+  (dropped in setuptools ≥ 81) and the `imp` shim via `modulegraph` on
+  Python 3.12+. The script pins `setuptools<81` and installs `modulegraph`.
+* **`mlx` is a PEP 420 namespace package** — py2app cannot treat it as a
+  `packages` entry. It copies only `mlx/core.so` and misses
+  `mlx/lib/libmlx.dylib` and `mlx/lib/mlx.metallib`, so `import mlx.core`
+  fails at `dlopen`. The script copies the whole installed `mlx/` tree next to
+  `core.so`.
+* **zip shadowing** — py2app also byte-compiles a *stub* `mlx/` package into
+  `lib/python312.zip`, which shadows the real tree. The script strips `mlx/*`
+  entries from the zip.
+* **Pillow's stale signatures** — Pillow (unused) drags in `libtiff`/`liblzma`
+  whose already-invalid ad-hoc signatures make `codesign --deep` fail. It is
+  excluded, which lets the bundle sign cleanly.
+* **Native runtime deps of `mlx_whisper`** — `mlx_whisper.timing` imports
+  `scipy` and `numba` (which needs `llvmlite`), and the tokeniser needs
+  `tiktoken`. All are bundled.
+* **numpy star-import** — scipy's array-api shim does `from numpy import *`,
+  which lazily triggers `numpy.testing` → `unittest`; `unittest` must not be
+  excluded.
 
-### Architecture
-Building on Apple Silicon (arm64). Can also build universal with `--arch=universal2` if needed, but increases size. Document per-arch or build universal.
+## Size
 
-### Size
-Bundled with MLX + models? Models download on first run (HuggingFace) - correct, keeps DMG small (~100-300MB vs GBs).
+The bundle (`dist/WhisperDoped.app`) is ~620 MB; the compressed DMG is
+~270 MB. Speech **models are not bundled** — they download from Hugging Face on
+first use (~1.6 GB for the default `mlx-community/whisper-large-v3-turbo`,
+much less for `whisper-tiny`).
 
-### Alternative: Briefcase (BeeWare)
-Also good - cross-platform, more "native". But py2app is simpler here.
+## Code signing / Gatekeeper
 
-## Next Steps
-1. Create `setup.py` and entry point
-2. Create build scripts
-3. Build .app locally to test
-4. Create DMG
-5. Update README
-6. Open in VS Code for review/push
+The app is **ad-hoc** signed (`codesign --sign -`). That keeps the bundle
+internally valid, but a *downloaded* (quarantined) ad-hoc app is still blocked
+by Gatekeeper the first time. Users clear it once with any of:
 
-This matches the user's requirements perfectly. Let us implement.
+* dual-clicking **`Install & Open.command`** in the DMG, or
+* right-click → **Open** on the app, or
+* `xattr -dr com.apple.quarantine /Applications/WhisperDoped.app`.
+
+For a completely warning-free download you would need an Apple Developer ID
+and notarization (paid). Without that, the quarantine step above is required —
+this is normal for open-source macOS apps.
+
+## Architecture
+
+Built for Apple Silicon (arm64) because MLX is Apple-Silicon only. Intel Macs
+should use the `uvx`/`pipx` route with the `whispercpp` or `fasterwhisper`
+backend instead.
+
+## Releases
+
+1. `git tag v0.2.0 && git push origin v0.2.0`
+2. `./build_app.sh && ./create_dmg.sh`
+3. Create the GitHub Release and attach
+   `dist/WhisperDoped-0.2.0-macOS-arm64.dmg`.

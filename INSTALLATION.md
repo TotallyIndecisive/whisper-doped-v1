@@ -1,59 +1,64 @@
-# Installation Options for Whisper Doped
+# Installing Whisper Doped
 
-## Option 1: Download .app from GitHub (Recommended for most users)
+## Option 1 — Download the app (recommended)
 
-This gives you a proper desktop app with an icon in Applications.
+Gives you a `WhisperDoped.app` in Applications, like any other Mac app.
 
-1. Go to [GitHub Releases](https://github.com/YOUR_USERNAME/whisper-doped/releases)
-2. Download the latest `.dmg` file (e.g., `WhisperDoped-0.2.0-macOS-arm64.dmg`)
-3. Open the DMG
-4. Drag `WhisperDoped.app` to your Applications folder
-5. Open `WhisperDoped.app` from Applications
+1. Go to the [Releases](https://github.com/TotallyIndecisive/whisper-doped-v1/releases)
+   page and download `WhisperDoped-0.2.0-macOS-arm64.dmg`.
+2. Open the DMG.
+3. **Double-click `Install & Open.command`.** It copies the app to
+   `/Applications`, clears the download-quarantine flag and launches it.
 
-**First launch:** If you see "cannot be opened because it is from an unidentified developer", right-click (or Ctrl+click) the app → Open → Open. This is normal for unsigned apps.
+   *(Prefer dragging? Drag `WhisperDoped.app` onto the **Applications**
+   shortcut, then — the first time only — right-click the app → **Open**, or
+   run `xattr -dr com.apple.quarantine /Applications/WhisperDoped.app`.)*
 
-## Option 2: uvx (No install, just run)
+The quarantine step is needed only once, because the app is not signed with a
+paid Apple Developer ID. After that it opens normally.
 
-Instant way to try it out without downloading the app.
+> Requires an Apple Silicon Mac. For Intel Macs use Option 2 or 3 below with the
+> `whispercpp` or `fasterwhisper` backend.
+
+## Option 2 — uvx (no install, runs straight from GitHub)
 
 ```bash
-# Install uv if you don't have it
+# install uv once
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Run Whisper Doped with MLX (Apple Silicon)
-uvx "whisper-doped[macos,mlx]" whisper-doped run
+# run (Apple Silicon / MLX)
+uvx "whisper-doped[macos,mlx] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1" whisper-doped run
 ```
 
-You can also use a specific version:
-```bash
-uvx "whisper-doped[macos,mlx]@0.2.0" whisper-doped run
-```
-
-## Option 3: pipx / uv tool (Persistent install)
+## Option 3 — persistent install with pipx or uv
 
 ```bash
-# pipx
-pipx install "whisper-doped[macos,mlx]"
+pipx install "whisper-doped[macos,mlx] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1"
+# or
+uv tool install "whisper-doped[macos,mlx] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1"
 
-# or uv
-uv tool install "whisper-doped[macos,mlx]"
-
-# Run
 whisper-doped run
 ```
 
-## macOS Permissions (Required)
+Intel Macs: swap `mlx` for `whispercpp` (e.g. `whisper-doped[macos,whispercpp]`).
 
-The first time you use Whisper Doped, macOS will ask for permissions. Grant them in System Settings → Privacy & Security:
+## macOS permissions (required)
 
-1. **Microphone** - To record your voice
-2. **Accessibility** - To type text into other apps
-3. **Input Monitoring** - To receive global hotkeys
+Grant these in **System Settings → Privacy & Security**:
 
-If using the downloaded .app, these permissions attach to WhisperDoped.app. If using uvx/pipx, they attach to the Python/uv process (or terminal). Both work fine.
+1. **Microphone** — to record your voice.
+2. **Accessibility** — to type recognised text into other apps and to receive
+   the global hotkey.
+3. **Input Monitoring** — may also be requested for the hotkey listener.
 
-## Notes
+With the downloaded `.app`, the permissions attach to *Whisper Doped*. With
+uvx/pipx they attach to your terminal or the `uv`/`python` process.
 
-- **Architecture:** The DMG is built for Apple Silicon (arm64). If you're on Intel Mac, you may need to build from source or use Option 2/3 which work on both.
-- **Privacy:** Everything runs locally. Models download once from Hugging Face.
-- **Open at Login:** You can enable "Start at login" from the Whisper Doped menu bar item.
+## Using it
+
+* Hold **Right Option** and speak, release to transcribe (push-to-talk).
+* Or press **Ctrl+Alt+Space** to start/stop (toggle).
+* The text is typed into whatever app has focus.
+
+Everything runs locally. The first dictation downloads the speech model once,
+then it works offline.
