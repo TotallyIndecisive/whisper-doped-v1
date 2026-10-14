@@ -1,12 +1,17 @@
 # Whisper Doped
 
-A local, private dictation app for **macOS and Linux**, built as a clean-room
-reimplementation of the **dictation half of Wispr Flow**
-(`com.electron.wispr-flow`).
+A free, open-source, local dictation app for **macOS and Linux**. Hold a key,
+speak, release — the text is transcribed on your machine and typed into whatever
+app has focus. No account, no sign-in, no cloud. Nothing you say leaves the
+computer.
 
-Hold a key, speak, release — the text is transcribed on your machine and typed
-into whatever app has focus. No account, no sign-in, no cloud. Nothing you say
-leaves the computer.
+> **Not affiliated with Wispr Flow.**
+> Whisper Doped is an independent, open-source project, inspired by the *idea* of
+> hold-to-talk dictation. It is **not affiliated with, endorsed by, sponsored
+> by, or connected to Wispr Flow / Wispr AI, Inc.** "Wispr Flow", "Wispr" and any
+> related names or logos belong to their respective owners. This is a
+> clean-room reimplementation: no code, models or data are shared with, or
+> copied from, Wispr Flow. See [License & disclaimer](#license--disclaimer).
 
 ---
 
@@ -59,46 +64,105 @@ telemetry, auto-update, and the LLM "instruct/command" modes.
 
 ---
 
-## Install & run: quick start (macOS)
+## Install
 
-### Option 1: Download the app (recommended)
+There are two supported ways to get Whisper Doped running: the **desktop app
+(DMG)** or **from the terminal**. Pick one — both give you the same menu-bar
+dictation tool. When you're done installing, continue to
+[Getting started](#getting-started-quick-tutorial).
 
-Download the prebuilt `.app` from [GitHub Releases](https://github.com/TotallyIndecisive/whisper-doped-v1/releases):
+### Path A — Desktop app (DMG, macOS Apple Silicon) — recommended
 
-1. Download `WhisperDoped-0.2.0-macOS-arm64.dmg` (Apple Silicon).
-2. Open the DMG and double-click **`Install & Open.command`** — it copies the app
-   to Applications, clears the download-quarantine flag and launches it.
-   *(Or drag `WhisperDoped.app` to Applications, then right-click → Open once.)*
-3. Grant Microphone and Accessibility permissions when asked.
+This installs a normal `WhisperDoped.app` you can launch from Applications.
 
-### Option 2: Run with uvx (no install)
+**1. Download.** Go to the
+[Releases page](https://github.com/TotallyIndecisive/whisper-doped-v1/releases)
+and download `WhisperDoped-0.2.0-macOS-arm64.dmg`.
+
+**2. Install.** Open the DMG, then **double-click `Install & Open.command`**. It
+copies the app to `/Applications`, clears the download-quarantine flag (so macOS
+lets it run) and launches it.
+
+<details>
+<summary>Prefer to drag it yourself? (manual steps)</summary>
+
+1. Drag `WhisperDoped.app` onto the **Applications** shortcut in the DMG window.
+2. The first launch of an unsigned app is blocked by macOS. Clear it with **one**
+   of these:
+   - right-click `WhisperDoped.app` → **Open** → **Open**, or
+   - in Terminal:
+     ```bash
+     xattr -dr com.apple.quarantine /Applications/WhisperDoped.app
+     ```
+3. Launch it from Applications.
+
+</details>
+
+**3. Grant permissions.** macOS will prompt: allow **Microphone** and
+**Accessibility**, and **Input Monitoring** if asked. See
+[macOS permissions](#macos-permissions-required) if you miss the prompt.
+
+**4. Wait for the model.** On first launch the menu bar shows *"Loading model…"*
+and downloads the speech model once (~1.6 GB for the default). When it says
+**"Model ready"** you're good to go.
+
+Then jump to **[Getting started](#getting-started-quick-tutorial)**.
+
+### Path B — Terminal (uvx, pipx/uv tool, or from source)
+
+Works on macOS (Apple Silicon or Intel) and Linux. When you launch from a
+terminal, macOS attributes Microphone/Accessibility permissions to your
+**terminal app** rather than to Whisper Doped — that's expected.
+
+**B1. uvx — run once without installing**
 
 ```bash
+# 1. install uv (one command, no sudo)
 curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. run Whisper Doped (Apple Silicon → MLX backend)
 uvx "whisper-doped[macos,mlx] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1" whisper-doped run
 ```
 
-### Option 3: Local dev
+On an **Intel Mac** or **Linux**, swap the extras for the portable CPU backend:
 
 ```bash
-cd ~/Development/q4-2026/rea/whisper-doped
-./run.sh                 # creates .venv, installs deps, starts the menu-bar app
+uvx "whisper-doped[whispercpp] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1" whisper-doped run
 ```
 
-- First launch downloads the Whisper model from Hugging Face (once).
-- Verify the environment any time with `./run.sh selftest`.
-- Run without a menu bar (keyboard only) with `./run.sh --console`.
-
-### Option 4: pipx / uv tool
+**B2. Install permanently (pipx or uv tool)**
 
 ```bash
-pipx install "whisper-doped[macos,mlx]"          # macOS with menu bar + MLX
-pipx install "whisper-doped[whispercpp]"         # Linux / Intel: portable CPU
+# macOS (Apple Silicon): menu bar + MLX
+pipx install "whisper-doped[macos,mlx] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1"
+# or
+uv tool install "whisper-doped[macos,mlx] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1"
 
-uv tool install "whisper-doped[macos,mlx]"       # or via uv
-whisper-doped run --console                       # terminal dictation
-whisper-doped run                                 # menu bar (macOS)
+# Intel Mac / Linux: portable CPU backend
+pipx install "whisper-doped[whispercpp] @ git+https://github.com/TotallyIndecisive/whisper-doped-v1"
+
+# run it
+whisper-doped run              # menu bar (macOS) / console
+whisper-doped run --console    # terminal only
 ```
+
+**B3. From source (for development)**
+
+```bash
+git clone https://github.com/TotallyIndecisive/whisper-doped-v1.git
+cd whisper-doped-v1
+./run.sh            # creates .venv, installs deps, starts the menu-bar app
+./run.sh selftest   # verify the environment at any time
+./run.sh --console  # terminal-only mode
+```
+
+**Terminal notes**
+
+- First launch downloads the speech model from Hugging Face (once).
+- Grant **Microphone**, **Accessibility** and (if asked) **Input Monitoring** to
+  your terminal in **System Settings → Privacy & Security**.
+- Check the engine with `whisper-doped backends` and the mic with
+  `whisper-doped devices`.
 
 ### Homebrew (CLI)
 
@@ -116,17 +180,20 @@ A future `Casks/whisper-doped.rb` (a signed, notarized `.app`) is the separate
 
 ### macOS permissions (required)
 
-The first time you dictate, macOS will ask. If it doesn't, open
-**System Settings → Privacy & Security** and enable your terminal (or the Python
-binary) under:
+Whisper Doped needs three permissions. macOS usually prompts on first use; if it
+doesn't, open **System Settings → Privacy & Security** and enable the relevant
+entry:
 
 1. **Microphone** — to capture audio.
 2. **Accessibility** — to type text into other apps and to read the focused field.
 3. **Input Monitoring** — to receive the global hotkey.
 
-Because you launch it from a terminal, macOS attributes these permissions to the
-terminal app. If you want the permissions to belong to Whisper Doped itself, see
-"Packaging as a real app" below.
+- **DMG install:** grant these to **Whisper Doped** (it appears by name).
+- **Terminal install:** grant these to your **terminal app** (Terminal, iTerm,
+  VS Code…), because that process launches the tool.
+
+If you want the permissions to belong to Whisper Doped itself, use the DMG or
+see "Packaging as a real macOS app" below.
 
 ### Linux prerequisites
 
@@ -137,6 +204,54 @@ sudo dnf install wtype ydotool          # Fedora
 # X11 (insertion)
 sudo apt install xdotool
 ```
+
+---
+
+## Getting started (quick tutorial)
+
+You've installed Whisper Doped and granted permissions — here's your first
+dictation.
+
+**1. Find it in the menu bar.** Whisper Doped lives in the macOS menu bar (no
+Dock icon). Look for a small status item whose title shows the current state:
+`idle`, `recording`, or `transcribing`.
+
+**2. Dictate something (push-to-talk).**
+
+1. Click into any text field — Mail, Notes, a browser, a chat app.
+2. **Hold the Right Option key (⌥)** and say:
+   *"Hello world, this is my first dictation."*
+3. **Release the key.** The status shows *transcribing…*, then the cleaned-up
+   text is typed in at your cursor.
+
+**3. Try toggle mode.** Press **Ctrl + Alt + Space** to start recording, speak,
+then press it again to stop. Change the default from the menu-bar item
+**Mode: …**.
+
+**4. See the cleanup.** Whisper Doped tidies what it hears as it types:
+
+- *"um, so the the meeting is at 5"* → **"So the meeting is at 5."**
+- *"hello comma world period"* → **"Hello, world."**
+- *"scratch that"* removes the sentence you just said.
+
+**5. Explore the menu.** Click the menu-bar item:
+
+- **History…** — your recent dictations (with the app they went to).
+- **Dictionary…** — teach it names/jargon, and add replacements & snippets.
+- **Reveal data folder** — open the folder holding your history + settings.
+- **Mode / Quit** — switch hotkey style or exit.
+
+**Hotkeys at a glance**
+
+| action | key |
+| --- | --- |
+| dictate (push-to-talk, default) | hold **Right Option (⌥)**, release to insert |
+| dictate (toggle mode) | **Ctrl + Alt + Space** to start / stop |
+| quit | **Quit** from the menu-bar item |
+
+That's it — everything runs on your machine, and the only network use is the
+one-time model download. If something doesn't work, see
+[Troubleshooting](#troubleshooting) or run `whisper-doped selftest`.
 
 ---
 
@@ -290,3 +405,17 @@ whisper-doped/
 Audio is processed entirely on-device. The only network access is the one-time
 model download from Hugging Face. The optional cloud-polish pass is **off** by
 default and only used if you add an OpenAI key and set `cloud_polish` to `true`.
+
+---
+
+## License & disclaimer
+
+Whisper Doped is **free and open-source software**, released under the
+[MIT License](LICENSE). You're welcome to read, fork, modify and redistribute it.
+
+It is an independent project and is **not affiliated with, endorsed by,
+sponsored by, or connected to Wispr Flow / Wispr AI, Inc.** "Wispr Flow",
+"Wispr" and any related names or logos are trademarks of their respective owners
+and are referenced only to describe the idea this project was inspired by. No
+code, models or data were copied from Wispr Flow — it is a clean-room,
+local-first reimplementation.

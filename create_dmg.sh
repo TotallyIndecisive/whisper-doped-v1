@@ -69,23 +69,39 @@ echo "Launching Whisper Doped ..."
 open "$DEST"
 
 echo ""
-echo "Done. Look for the microphone icon in your menu bar."
-echo "Grant Accessibility + Microphone permission when macOS asks."
+echo "Done. Whisper Doped is now in your menu bar (no Dock icon)."
+echo ""
+echo "Next steps:"
+echo "  1. Grant Microphone + Accessibility (and Input Monitoring if asked)"
+echo "     when macOS prompts."
+echo "  2. Wait for the menu bar to say \"Model ready\" — the first launch"
+echo "     downloads the speech model once (~1.6 GB), then it works offline."
+echo "  3. Click into any text field, HOLD Right Option (Option key), speak,"
+echo "     and release — your text is typed in where the cursor is."
 sleep 2
 HELPER
 chmod +x "$STAGE/Install & Open.command"
 
 cat > "$STAGE/README.txt" <<'README'
-Whisper Doped — local, private dictation for macOS
-==================================================
+Whisper Doped — free, open-source, local dictation for macOS
+============================================================
+
+Whisper Doped is an independent, open-source project. It is NOT affiliated
+with, endorsed by, or connected to Wispr Flow / Wispr AI, Inc. "Wispr Flow"
+and related names are trademarks of their respective owners. This is a
+clean-room, local-first reimplementation. Full project:
+https://github.com/TotallyIndecisive/whisper-doped-v1
 
 Install
 -------
-1. Drag "WhisperDoped.app" onto the Applications shortcut in this window.
-   (Or double-click "Install & Open.command" to do it automatically.)
+1. Double-click "Install & Open.command". It copies the app to /Applications,
+   clears the download-quarantine flag and launches it.
 
-2. First launch: because this app is not signed with an Apple Developer ID,
-   macOS will warn that it "cannot be opened". Do ONE of these:
+   Prefer to do it by hand? Drag "WhisperDoped.app" onto the Applications
+   shortcut in this window, then continue to step 2.
+
+2. First launch of an unsigned app is blocked by macOS ("cannot be opened").
+   Clear it with ONE of these (only needed once):
 
      a) Double-click "Install & Open.command" (easiest), or
      b) In Finder, right-click WhisperDoped.app -> Open -> Open, or
@@ -93,20 +109,28 @@ Install
           xattr -dr com.apple.quarantine /Applications/WhisperDoped.app
         then open the app.
 
-   You only need to do this once.
-
 3. macOS will ask for Microphone and Accessibility permissions. Grant both —
    Accessibility is what lets Whisper Doped type text into other apps and
-   listen for the global hotkey.
+   listen for the global hotkey. Grant Input Monitoring too if asked.
 
-Use
----
-* Hold Right Option and speak, release to transcribe. (Push-to-talk)
-* Or press Ctrl+Alt+Space to start/stop. (Toggle)
-* The recognised text is typed into whatever app has focus.
+4. On first launch the menu bar shows "Loading model…" and downloads the
+   speech model once (~1.6 GB for the default). Wait for "Model ready".
 
-Everything runs on your Mac. The first dictation downloads the speech model
-(once), then works offline.
+Getting started
+---------------
+* Whisper Doped lives in the menu bar (no Dock icon). Look for the small
+  status item: idle / recording / transcribing.
+* Click into any text field, then HOLD Right Option (⌥), speak, and RELEASE.
+  The cleaned-up text is typed in where your cursor is.  (push-to-talk)
+* Or press Ctrl+Alt+Space to start, and again to stop.  (toggle)
+* Tidy-up is automatic: fillers are removed ("um, so the the ..." ->
+  "So the ..."), spoken punctuation works ("hello comma world period" ->
+  "Hello, world."), and "scratch that" deletes the last sentence.
+* Click the menu-bar item for History…, Dictionary… (names/jargon,
+  replacements, snippets), Reveal data folder, Mode, and Quit.
+
+Everything runs on your Mac. The only network use is the one-time model
+download, after which it works fully offline.
 README
 
 # Build the compressed DMG
